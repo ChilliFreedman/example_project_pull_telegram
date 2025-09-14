@@ -1,4 +1,5 @@
 from pymongo import MongoClient
+import os
 
 class StorageManager:
     def __init__(self, mongo_uri, db_name):
@@ -7,8 +8,13 @@ class StorageManager:
         self.files_collection = self.db["files"]
 
     def save_file(self, file_path, metadata):
-        """שומר קובץ ו־metadata ב־MongoDB"""
-        # שמירה של קובץ בפורמט בינארי
+        """שומר קובץ ו־metadata ב־MongoDB אם לא קיים כבר"""
+        if self.files_collection.find_one({
+            "message_id": metadata["message_id"],
+            "group_link": metadata["group_link"]
+        }):
+            return None  # כבר שמור
+
         with open(file_path, "rb") as f:
             data = f.read()
         doc = {

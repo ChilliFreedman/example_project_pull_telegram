@@ -1,8 +1,9 @@
+
 import os
 from dotenv import load_dotenv
 from app.telegram_downloader import TelegramDownloader
 from app.storage_manager import StorageManager
-from telethon import TelegramClient
+import asyncio
 
 # --- Load environment variables ---
 load_dotenv()
@@ -14,17 +15,32 @@ DB_NAME = os.getenv("DB_NAME")
 # --- Setup Storage Manager ---
 storage = StorageManager(MONGO_URI, DB_NAME)
 
-# --- נקה את הקולקשיין אם רוצים התחלה נקייה ---
-storage.clear_collection()
-
 # --- Setup Telegram Downloader ---
 downloader = TelegramDownloader(API_ID, API_HASH, storage)
 
-# --- Link to your group ---
-GROUP_LINK = "https://t.me/+ztOtIXepdDVkYjE0"
+async def main():
+    print("✅ Telegram Downloader started")
+    monitored_groups = set()
 
-# --- Run ---
-with downloader.client:
-    downloader.client.loop.run_until_complete(
-        downloader.download_group_messages(GROUP_LINK, limit=50)
-    )
+    async def add_group():
+        while True:
+            group_link = input("Enter Telegram group link to monitor (or 'q' to quit adding): ")
+            if group_link.lower() == "q":
+                break
+            if group_link in monitored_groups:
+                print("⚠️ Already monitoring this group.")
+                continue
+            monitored_groups.add(group_link)
+            print(f"✅ Will monitor group: {group_link}")
+            downloader.start_listening(group_link)
+
+    # Allow user to add groups in the background
+    asyncio.create_task(add_group())
+
+    # Keep the program running
+    while True:
+        await asyncio.sleep(1)
+
+if __name__ == "__main__":
+    with downloader.client:
+        downloader.client.loop.run_until_complete(main())
