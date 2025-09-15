@@ -1,5 +1,6 @@
 .env
 my_session.session
+downloader_session.session
 downloads/
 
 
