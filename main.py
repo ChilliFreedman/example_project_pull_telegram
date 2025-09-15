@@ -1,9 +1,8 @@
-
 import os
+import asyncio
 from dotenv import load_dotenv
 from app.telegram_downloader import TelegramDownloader
 from app.storage_manager import StorageManager
-import asyncio
 
 # --- Load environment variables ---
 load_dotenv()
@@ -32,15 +31,21 @@ async def main():
                 continue
             monitored_groups.add(group_link)
             print(f"✅ Will monitor group: {group_link}")
-            downloader.start_listening(group_link)
 
-    # Allow user to add groups in the background
+            # --- Download existing messages first ---
+            await downloader.download_group_messages(group_link)
+
+            # --- Start listening for new messages ---
+            asyncio.create_task(downloader.start_listening(group_link))
+
+    # Run the group-adding loop in the background
     asyncio.create_task(add_group())
 
-    # Keep the program running
+    # Keep the program running indefinitely
     while True:
         await asyncio.sleep(1)
 
 if __name__ == "__main__":
+    # Start the Telegram client and run the main loop
     with downloader.client:
         downloader.client.loop.run_until_complete(main())
