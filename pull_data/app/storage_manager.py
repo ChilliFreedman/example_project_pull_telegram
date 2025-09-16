@@ -18,7 +18,7 @@ class StorageManager:
             "metadata.group_link": metadata["group_link"]
         })
         if existing:
-            return None  # כבר שמור
+            return existing["_id"]  # כבר שמור
 
         with open(file_path, "rb") as f:
             data = f.read()

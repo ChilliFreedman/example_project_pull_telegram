@@ -1,4 +1,4 @@
-.env
+pull_data/.env
 my_session.session
 downloader_session.session
 downloads/
@@ -146,7 +146,7 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-.env
+pull_data/.env
 .envrc
 .venv
 env/
